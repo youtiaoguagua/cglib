@@ -30,6 +30,9 @@ public class StartTest {
         //  设置java动态代理调试模式
         System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
 
+        System.setProperty("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+
+
         //  设置Cglib动态代理调试模式
         System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, "target");
 
@@ -50,6 +53,7 @@ public class StartTest {
             return result;
         });
         log.info(helloWorld.sayHello("hello world"));
+        //log.info(helloWorld.sayGoodBye("hello world"));
     }
 
     @Test
