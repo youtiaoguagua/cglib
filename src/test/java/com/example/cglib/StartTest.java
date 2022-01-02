@@ -30,9 +30,6 @@ public class StartTest {
         //  设置java动态代理调试模式
         System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
 
-        System.setProperty("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
-
-
         //  设置Cglib动态代理调试模式
         System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, "target");
 
@@ -53,7 +50,6 @@ public class StartTest {
             return result;
         });
         log.info(helloWorld.sayHello("hello world"));
-        //log.info(helloWorld.sayGoodBye("hello world"));
     }
 
     @Test
@@ -111,23 +107,43 @@ public class StartTest {
     }
 
     @Test
-    @DisplayName("为每个方法设置回调")
+    @DisplayName("Cglib动态代理使用method.invoke")
     @Tag("cglib")
-    public void testMultiCallBack() {
+    public void testCglibWithMethodInvoke() {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(HelloWorldImpl.class);
-        enhancer.setCallbackFilter(new CglibFilter());
-        enhancer.setCallbacks(new MethodInterceptor[]{new AuthInterceptor(), new NormalInterceptor()});
+        enhancer.setCallback((MethodInterceptor) (obj, method, args, methodProxy) -> {
+            log.info("调用方法开始：{}", method.getName());
+            Object result = method.invoke(obj, args);
+            log.info("调用结果:{}", result);
+            log.info("调用方法结束：{}", method.getName());
+            return result;
+        });
         HelloWorld helloWorld = (HelloWorld) enhancer.create();
-        log.info("最终返回结果：{}", helloWorld.sayHello("cglib"));
-        log.info("最终返回结果：{}", helloWorld.sayGoodBye("cglib"));
+        log.info(helloWorld.sayHello("cglib"));
+        //会报StackOverFlow异常
     }
+
+
+
 
 
     @DisplayName("不同的回调实现")
     @Nested
     @Tag("cglib")
     class DifferentCallback {
+
+        @Test
+        @DisplayName("为每个方法设置回调")
+        public void testMultiCallBack() {
+            Enhancer enhancer = new Enhancer();
+            enhancer.setSuperclass(HelloWorldImpl.class);
+            enhancer.setCallbackFilter(new CglibFilter());
+            enhancer.setCallbacks(new MethodInterceptor[]{new AuthInterceptor(), new NormalInterceptor()});
+            HelloWorld helloWorld = (HelloWorld) enhancer.create();
+            log.info("最终返回结果：{}", helloWorld.sayHello("cglib"));
+            log.info("最终返回结果：{}", helloWorld.sayGoodBye("cglib"));
+        }
 
         @Test
         @DisplayName("FixedValue")
